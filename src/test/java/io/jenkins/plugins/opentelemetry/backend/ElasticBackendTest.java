@@ -10,10 +10,16 @@ import io.jenkins.plugins.opentelemetry.backend.elastic.ElasticLogsBackendWithou
 import io.jenkins.plugins.opentelemetry.backend.elastic.NoElasticLogsBackend;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Map;
 
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
 public class ElasticBackendTest {
 
     @Test
@@ -41,5 +47,22 @@ public class ElasticBackendTest {
         Map<String, String> actual = elasticBackend.getOtelConfigurationProperties();
         Map<String, String> expected = Collections.singletonMap("otel.logs.exporter", "otlp");
         Assert.assertEquals(actual, expected);
+    }
+
+    @Test
+    public void mergeBindingsTest_PositiveCase() {
+        // Arrange
+        ElasticBackend elasticBackend = spy(ElasticBackend.class);
+        Map<String, Object> newBinding = Collections.singletonMap("resource", new String("CI/CD"));
+        Map<String, Object> mockedBinding = Collections.singletonMap("capacity", new String("500GB"));
+
+        // Mock
+        when(elasticBackend.getBindings()).thenReturn(mockedBinding);
+
+        // Act
+        Map<String, Object> mergedBindings = elasticBackend.mergeBindings(newBinding);
+
+        // Assert
+        Assert.assertEquals(2, mergedBindings.size());
     }
 }
